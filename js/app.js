@@ -253,132 +253,55 @@ async function loadArticles() {
 
     displayArticles(latestArticles);
   } else {
-    /*
-      Affichage de tous les articles.
-  */
     displayArticles(articles);
   }
 }
-
-/* =========================================================
-   PUBLICATION D'UN ARTICLE
-========================================================= */
-
+/*----------- PUBLICATION D'UN ARTICLE-----------------*/
 if (articleForm) {
   articleForm.addEventListener("submit", async function (event) {
-    /*
-          Empêcher le rechargement de la page.
-      */
-
     event.preventDefault();
-
     clearFormMessage();
-
     hideError();
-
-    /* ---------------------------------------------------
-         RÉCUPÉRER LES VALEURS
-      --------------------------------------------------- */
-
     const title = titleInput.value.trim();
-
     const category = categoryInput.value;
-
     const content = contentInput.value.trim();
-
     const image = imageInput.value.trim();
-
-    /* ---------------------------------------------------
-         VALIDATION TITRE
-      --------------------------------------------------- */
-
     if (!title) {
       showFormMessage("Veuillez saisir un titre.", "error");
-
       titleInput.focus();
-
       return;
     }
-
-    /* ---------------------------------------------------
-         VALIDATION CATÉGORIE
-      --------------------------------------------------- */
-
     if (!category) {
       showFormMessage("Veuillez choisir une catégorie.", "error");
-
       categoryInput.focus();
-
       return;
     }
-
-    /* ---------------------------------------------------
-         VALIDATION CONTENU
-      --------------------------------------------------- */
-
     if (!content) {
       showFormMessage("Veuillez écrire le contenu.", "error");
-
       contentInput.focus();
-
       return;
     }
-
-    /* ---------------------------------------------------
-         OBJET ARTICLE
-      --------------------------------------------------- */
-
     const article = {
       title: title,
-
       category: category,
-
       content: content,
-
       image: image || null,
     };
-
-    /* ---------------------------------------------------
-         ÉTAT CHARGEMENT DU BOUTON
-      --------------------------------------------------- */
-
+    /*---------------- ÉTAT CHARGEMENT DU BOUTON------------------*/
     publishButton.disabled = true;
-
     publishButton.innerHTML = `
-
         <i class="bi bi-arrow-repeat"></i>
-
-        PUBLICATION...
-
-      `;
-
+        PUBLICATION...`;
     try {
-      /* -------------------------------------------------
-           POST /articles
-        ------------------------------------------------- */
-
       const response = await fetch(API_URL, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify(article),
       });
-
-      /*
-            Lire la réponse.
-
-            On utilise text() d'abord pour éviter
-            "Unexpected end of JSON input" si le serveur
-            renvoie une réponse vide.
-        */
-
       const text = await response.text();
-
       let data = {};
-
       if (text) {
         try {
           data = JSON.parse(text);
@@ -386,162 +309,71 @@ if (articleForm) {
           data = {};
         }
       }
-
-      /*
-            Vérifier le statut HTTP.
-        */
-
       if (!response.ok) {
         throw new Error(data.message || `Erreur HTTP : ${response.status}`);
       }
-
       console.log("Article créé :", data);
-
-      /* -------------------------------------------------
-           SUCCÈS
-        ------------------------------------------------- */
-
       showFormMessage("Article publié avec succès !", "success");
-
-      /*
-            Vider le formulaire.
-        */
-
       articleForm.reset();
     } catch (err) {
       console.error("Erreur POST /articles :", err);
-
       showFormMessage(
         err.message || "Impossible de publier l'article.",
 
         "error",
       );
     } finally {
-      /*
-            Restaurer le bouton.
-        */
-
       publishButton.disabled = false;
-
       publishButton.innerHTML = `
-
           <i class="bi bi-send"></i>
-
-          PUBLIER L'ARTICLE
-
-        `;
+          PUBLIER L'ARTICLE`;
     }
   });
 }
-
-/* =========================================================
-   BOUTON "VOIR TOUS / VOIR MOINS"
-========================================================= */
+/*-------------BOUTON "VOIR TOUS / VOIR MOINS"------------*/
 
 if (showAllBtn) {
   showAllBtn.addEventListener("click", async function () {
-    /*
-          Inverser l'état.
-      */
-
     showAllArticles = !showAllArticles;
-
-    /*
-          Si on veut afficher tous les articles.
-      */
-
     if (showAllArticles) {
       showAllBtn.textContent = "Voir moins";
-
-      /*
-            On récupère les articles
-            depuis la base de données.
-
-            Cela permet notamment de récupérer
-            les nouveaux articles publiés.
-        */
-
       await loadArticles();
     } else {
-      /*
-          Si on veut revenir aux deux articles.
-      */
       showAllBtn.textContent = "Voir tous";
-
-      /*
-            Pas besoin de refaire une requête.
-
-            On utilise les articles déjà récupérés.
-        */
-
       displayArticles(articles.slice(0, 2));
     }
   });
 }
 
-/* =========================================================
-   SUPPRESSION D'ARTICLE
-========================================================= */
+/*------------- SUPPRESSION D'ARTICLE-----------*/
 
 async function deleteArticle(id) {
-  /*
-      Vérification administrateur.
-  */
-
   if (!isAdmin) {
     alert("Vous devez être administrateur.");
-
     return;
   }
-
-  /*
-      Récupérer le mot de passe
-      enregistré dans la session.
-  */
-
   const password = sessionStorage.getItem("adminPassword");
-
   if (!password) {
     isAdmin = false;
-
     updateAdminButtons();
-
     alert("Session administrateur expirée.");
-
     return;
   }
-
-  /*
-      Demander confirmation.
-  */
-
   const confirmation = confirm("Voulez-vous vraiment supprimer cet article ?");
-
   if (!confirmation) {
     return;
   }
 
   try {
-    /*
-        DELETE /articles/:id
-    */
-
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
-
       headers: {
         "x-admin-password": password,
       },
     });
 
-    /*
-        Lire la réponse de manière sécurisée.
-    */
-
     const text = await response.text();
-
     let data = {};
-
     if (text) {
       try {
         data = JSON.parse(text);
@@ -549,38 +381,16 @@ async function deleteArticle(id) {
         data = {};
       }
     }
-
-    /*
-        Vérifier la réponse.
-    */
-
     if (!response.ok) {
-      /*
-          Si le serveur refuse l'accès,
-          le mot de passe est probablement incorrect.
-      */
-
       if (response.status === 403) {
         sessionStorage.removeItem("adminPassword");
-
         isAdmin = false;
-
         updateAdminButtons();
       }
 
       throw new Error(data.message || `Erreur HTTP : ${response.status}`);
     }
-
-    /*
-        Succès.
-    */
-
     console.log("Article supprimé :", data);
-
-    /*
-        Recharger les articles.
-    */
-
     await loadArticles();
   } catch (err) {
     console.error("Erreur suppression :", err);
@@ -589,32 +399,21 @@ async function deleteArticle(id) {
   }
 }
 
-/* =========================================================
-   ÉVÉNEMENTS DES BOUTONS SUPPRIMER
-========================================================= */
+/*--------------- ÉVÉNEMENTS DES BOUTONS SUPPRIMER------------------*/
 
 function addDeleteEvents() {
   const deleteButtons = document.querySelectorAll(".delete-button");
-
   deleteButtons.forEach((button) => {
     button.addEventListener("click", function () {
       const id = this.dataset.id;
-
       if (!id) {
         console.error("ID article manquant.");
 
         return;
       }
-
       deleteArticle(id);
     });
   });
 }
-
-/* =========================================================
-   INITIALISATION
-========================================================= */
-
 createAdminButton();
-
 loadArticles();

@@ -6,13 +6,10 @@ const path = require("path");
 require("dotenv").config();
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-
 app.use(express.json());
-
 app.use(
   express.urlencoded({
     extended: true,
@@ -23,28 +20,19 @@ app.use(express.static(path.join(__dirname, "public")));
 
 const dataBase = mysql.createPool({
   host: process.env.DB_HOST,
-
   user: process.env.DB_USER,
-
   password: process.env.DB_PASSWORD,
-
   database: process.env.DB_NAME,
-
   port: Number(process.env.DB_PORT) || 3306,
-
   waitForConnections: true,
-
   connectionLimit: 10,
-
   queueLimit: 0,
 });
 
 async function testDatabase() {
   try {
     const connection = await dataBase.getConnection();
-
     console.log("Base de données bien connectée.");
-
     connection.release();
   } catch (error) {
     console.error("Erreur de connexion à MySQL :", error.message);
@@ -70,9 +58,7 @@ app.get("/articles", async (req, res) => {
 app.post("/articles", async (req, res) => {
   try {
     const { title, category, content, image } = req.body;
-
     /* VALIDATION */
-
     if (!title || !category || !content) {
       return res.status(400).json({
         message: "Le titre, la catégorie et le contenu sont obligatoires.",
