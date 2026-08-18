@@ -16,7 +16,8 @@ app.use(
   }),
 );
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use("/css", express.static(path.join(__dirname, "css")));
+app.use("/js", express.static(path.join(__dirname, "js")));
 
 const dataBase = mysql.createPool({
   host: process.env.DB_HOST,
@@ -109,7 +110,7 @@ app.post("/articles", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.delete("/articles/:id", async (req, res) => {
