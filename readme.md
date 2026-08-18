@@ -96,10 +96,10 @@ Créer un fichier `.env` à la racine avec les variables suivantes :
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=votre_mot_de_passe
+DB_PASSWORD=mot_de_passe
 DB_NAME=pubart
 DB_PORT=3306
-ADMIN_PASSWORD=votre_mot_de_passe_admin
+ADMIN_PASSWORD=mot_de_passe_admin
 ```
 
 ## API — Endpoints
